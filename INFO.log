@@ -1,0 +1,7 @@
+{"level":"error","message":"Mensaje de error"}
+{"level":"warn","message":"Mensaje de alerta"}
+{"level":"info","message":"Mensaje de informacion"}
+{"level":"http","message":"Mensaje de http"}
+{"level":"verbose","message":"Mensaje de verbose"}
+{"level":"debug","message":"Mensaje de debug"}
+{"level":"silly","message":"Mensaje de silly"}

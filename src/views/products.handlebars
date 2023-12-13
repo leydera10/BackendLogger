@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../public/index.css">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <h1>Lista de Productos</h1>
+        <h2>Bienvenido: {{nombre}} {{apellido}}</h2> 
+        <button id="carrito-compra">Mi Carrito</button>
+        <h5><a href="/logout">Cerrar sesion</a></h5>
+        <ul id="products">
+            {{#each productos}}
+            <li class="product" id="{{_id}}">
+                <h2>{{title}}</h2>
+                <p>Descripción: {{description}}</p>
+                {{!-- <p>Código: {{code}}</p>
+                <p>Precio: {{price}}</p>
+                <p>Stock: {{stock}}</p> --}}
+                <p>Categoría: {{category}}</p>
+                <button class="detalle-button" data-product-id="{{_id}}">detalle</button>
+                {{!-- <button>Agregar al carrito</button> --}}
+            </li>
+            {{/each}}
+        </ul>
+    </div>
+    
+        <div class="pagination">
+            {{#if prevLink}}
+            <a href="/allproducts?page={{prevPage}}">Anterior</a>
+            {{/if}}
+
+            <a href="/allproducts?page={{page}}">pagina{{page}}</a>
+
+            {{#if nextLink}}
+            <a href="/allproducts?page={{nextPage}}">Siguiente</a>
+            {{/if}}
+        </div>
+
+    <div>
+
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts.js"></script>
+</body>
+</html> 
+ 

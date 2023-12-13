@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+
+    <div>
+        <form id="loginForm">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" required>
+            <br>
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" required>
+            <br>
+            <label for="mailmessage">Mensaje:</label>
+            <textarea id="mailmessage" name="mailmessage"></textarea>
+            <br>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    <div>
+        <a href="/github"><button>Ingresar con github</button></a>
+    </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts.js"></script>
+</body>
+</html>

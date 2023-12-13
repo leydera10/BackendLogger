@@ -1,0 +1,35 @@
+body {
+background-color: rgb(83, 231, 211);
+}
+
+.formularioIndex {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+}
+
+.product {
+    display: flex; /* Activa el modelo de caja flexible (Flexbox) */
+    justify-content: space-between; /* Espacio uniformemente distribuido entre los elementos */
+    align-items: center; /* Centra los elementos verticalmente */
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px;
+}
+
+.product h2 {
+    font-size: 24px;
+    color: #333;
+}
+
+.product p {
+    font-size: 16px;
+}
+
+.product button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
