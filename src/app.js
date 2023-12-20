@@ -27,7 +27,7 @@ const GitHubStrategy = require("passport-github2");
 const cookieParser = require("cookie-parser"); //revisar si funciona
 const { Contacts, Users, Carts, Products } = require("./dao/factory");
 const loggerMiddleware = require("./loggerMiddleware.js");
-
+const { ustomError, throwError, errorMiddleware, Errors } = require('./Errors/customErrors.js');
 
 
 const app = express()
@@ -87,7 +87,11 @@ app.use("/", mailRouter);
 app.use("/", mockingproducts);
 
 
-
+// Middleware de manejo de errores
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.statusCode || 500).json({ error: err.message });
+});
 
 //Configuración de handlebars
 app.engine("handlebars", handlebars.engine());
