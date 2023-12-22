@@ -3,6 +3,7 @@ const router = express.Router();
 const {faker} = require("@faker-js/faker");
 const { productModel } = require("../dao/mongo/models/products.model.js"); // usar en caso de persistencia en la DB
 
+// Ruta para crear productos random utilizando "faker"
 router.post("/mockingproducts", async (req, res) => {
 
     try {

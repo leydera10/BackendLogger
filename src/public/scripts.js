@@ -287,9 +287,84 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Error al iniciar sesión. Por favor, inténtalo de nuevo más tarde.");
       }
     });
+
+    // Evento para la recuperación de contraseña
+    const recoveryButton = document.getElementById("recoveryButton");
+    if (recoveryButton) {
+      recoveryButton.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("email").value;
+
+        try {
+          const recoveryResponse = await fetch("/recoverypass", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email })
+          });
+
+          if (recoveryResponse.ok) {
+            const recoveryData = await recoveryResponse.json();
+            alert("Se envio un enlace a su correo con exito")
+            console.log(recoveryData.message); // Mensaje del servidor después de enviar la solicitud de recuperación de contraseña
+          } else {
+            console.error("Error al solicitar recuperación de contraseña");
+            // Manejo de errores
+          }
+        } catch (error) {
+          console.error("Error al solicitar recuperación de contraseña:", error);
+          // Manejo de errores
+        }
+      });
+    }
+
   }
+
+  const resetPasswordForm = document.getElementById("resetPasswordForm");
+  if(resetPasswordForm){
+
+    resetPasswordForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const newPassword = document.getElementById("newPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      // Por ejemplo, verificar si las contraseñas coinciden
+      if (newPassword !== confirmPassword) {
+        alert("Las contraseñas no coinciden");
+        return;
+      }
+
+      try {
+        const response = await fetch("/actualizar-pass", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, newPassword })
+        });
   
+        if (!response.ok) {
+          if (response.status === 401) {
+            alert("Tiempo de enlace expirado,  redirigiendo alinicio.");
+            window.location.href = "/login"; // Redirigir a la página de inicio de sesión
+            return;
+          }
+          throw new Error('Error al actualizar la contraseña');
+        }
   
+        const data = await response.json();
+        alert("Contraseña actualizada correctamente")
+        console.log(data);
+      } catch (error) {
+        // Manejar errores
+        console.error('Error:', error.message);
+      }
+    
+    });
+  }
   
 
 });

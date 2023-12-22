@@ -1,8 +1,10 @@
 const {userModel} = require("../dao/mongo/models/users.model.js");
 const {cartModel} = require("../dao/mongo/models/carts.model.js");
 const {messageModel} = require("../dao/mongo/models/messages.model.js");
-const { createHash, isValidPassword, generateToken, authToken } = require('../utils');
+const { createHash, isValidPassword, generateToken, generateTokenRecovery } = require('../utils');
 const UserDTO = require("../dao/DTOs/user.dto.js");
+const bcrypt = require("bcrypt")
+const { transporter } = require("../routes/mailRouter");
 const UserDao = require("../dao/mongo/users.mongo.js");
 const logger = require("../logger.js");
 
@@ -107,6 +109,7 @@ async function loginUser(req, res) {
 
     logger.info("Inicio de sesión exitoso para el usuario: " + user.email);
     logger.info("Token generado para el usuario: " + token);
+    logger.info("rol del usuario: " + user.rol);
     // consolelog de usuario y token
     /* console.log("token desde usercontrolers",token)
     console.log(user) */
@@ -155,6 +158,39 @@ async function updateUser(req, res) {
   }
 }
 
+async function updatePasswordByEmail(req, res) {
+  const { email, newPassword } = req.body;
+
+  try {
+    const user = await userDao.getUserByEmail(email);
+
+    if (!user) {
+      return res.status(400).json({ error: "No se encontró el usuario" });
+    }
+    
+    // Comparar la nueva contraseña con la anterior
+    const matchOldPassword = await bcrypt.compare(newPassword, user.password);
+    console.log(matchOldPassword)
+    if (matchOldPassword) {
+      return res.status(400).json({ error: "La nueva contraseña no puede ser igual a la anterior" });
+      /* console.log("la contraseña no puede ser igual") */
+    }
+
+    const hashedPassword = createHash(newPassword); /* await bcrypt.hash(newPassword, saltRounds); */
+
+    const userUpdate = await userDao.updatePassword(user._id, hashedPassword);
+    if (!userUpdate) {
+      return res.status(500).json({ error: "Error al actualizar la contraseña" });
+    }
+b
+    
+    return res.status(200).json({ message: "Contraseña actualizada correctamente" });
+  } catch (error) {
+    console.error(`Error al buscar al usuario o actualizar la contraseña: ${error}`);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
 async function deleteUser(req, res) {
   const { uid } = req.params;
   try {
@@ -163,6 +199,74 @@ async function deleteUser(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", error: "Error al eliminar el usuario" });
+  }
+}
+
+
+async function recuperacionCorreo(req, res) {
+  const { email } = req.body; // Suponiendo que el campo de correo electrónico se envía desde el formulario de login
+
+  try {
+    const usuario = await userDao.getUserByEmail(email);
+    if (!usuario) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    //generar token para expirar correo de reestablecimiento de pass
+    
+    const token = generateTokenRecovery({ email: usuario.email });
+    if (!token) {
+      return res.status(500).json({ message: 'Error al generar el token.' });
+    }
+
+    logger.info("token de recoverypass:" + token)
+    // Construir el enlace de recuperación
+    const recoveryLink = `http://localhost:8080/reset_password/${token}`;
+
+    // Contenido del email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Recuperación de contraseña',
+      text: `Hola ${usuario.nombre},\n\nPara restablecer tu contraseña, haz clic en el siguiente enlace:\n\n${recoveryLink}\n\nSi no solicitaste un cambio de contraseña, ignora este mensaje.`,
+    };
+
+    // Enviar el correo
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Hubo un error al enviar el correo.' });
+      }
+      return res.json({ message: 'Se ha enviado un enlace de recuperación a tu correo electrónico.' });
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al procesar la solicitud.' });
+  }
+}
+
+async function changeRol(req, res) {
+  const { uid } = req.params;
+  try {
+    const user = await userDao.getUserById(uid)
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Cambiar el rol según la lógica deseada
+    if (user.rol === "user") {
+      user.rol = "premium";
+    } else if (user.rol === "premium") {
+      user.rol = "user";
+    }
+
+    const updatedUser = await user.save(); // Guardar el usuario con el nuevo rol
+
+    res.json({ message: "Rol de usuario actualizado", user: updatedUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", error: "Error al cambiar el rol del usuario" });
   }
 }
 
@@ -177,4 +281,7 @@ module.exports = {
   getAllUsers,
   createUser,
   getUserByEmail,
+  recuperacionCorreo,
+  updatePasswordByEmail,
+  changeRol,
 };

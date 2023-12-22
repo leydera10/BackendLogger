@@ -13,5 +13,8 @@ router.get("/api/sessions/user", passport.authenticate("current", { session: fal
 router.get("/logout", usersControllers.logoutUser);
 router.put("/users/:uid", usersControllers.updateUser);
 router.delete("/users/:uid", usersControllers.deleteUser);
+router.post("/recoverypass", usersControllers.recuperacionCorreo);
+router.post("/actualizar-pass", usersControllers.updatePasswordByEmail)
+router.post("/api/users/premium/:uid", usersControllers.changeRol)
 
 module.exports = router;

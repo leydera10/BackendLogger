@@ -1,4 +1,4 @@
-const ProductDao = require("../dao/mongo/products.mongo"); // Importa tu DAO o servicio adecuado
+const ProductDao = require("../dao/mongo/products.mongo"); // Importa el DAO de productos
 const { ProductCreationError } = require("../Errors/customErrors.js");
 const logger = require("../logger.js");
 
@@ -108,7 +108,11 @@ const saveProduct = async (req, res) => {
         if (!isValidProduct(newProduct)) {
             throw new ProductCreationError("datos del producto invalidos"); 
         }
-        
+
+        // Asigna el usuario autenticado al producto antes de guardarlo
+        newProduct.owner = req.user.email; // Asigna el email del usuario autenticado al campo owner del producto
+
+
         const result = await productDao.saveProduct(newProduct);
         logger.info("Producto creado correctamente:", result);
         res.json({ status: "success producto creado", result: result });
@@ -127,7 +131,7 @@ const saveProduct = async (req, res) => {
 //SAVEPRODUCT ANTIGUO EN CASO DE ERROR
 /* const saveProduct = async (req, res) => {
     const newProduct = req.body;
-    try {
+    try {           
         const result = await productDao.saveProduct(newProduct);
         res.json({ status: "success producto creado", result: result });
     } catch (error) {
@@ -156,7 +160,21 @@ const updateProduct = async (req, res) => {
 // eliminar un producto especifico segun id
 const deleteProduct = async (req, res) => {
     const productId = req.params.id;
+    const user = req.user; // Usuario autenticado
+
     try {
+        // Buscar el producto por su ID
+        const product = await productDao.getProductById(productId);
+
+        if (!product) {
+            return res.status(404).json({ message: "Producto no encontrado" });
+        }
+
+        // verifica si el usuario creo el producto
+        if (user.rol === "premium" && product.owner !== user.email) {
+            return res.status(403).json({ message: "No tienes permisos para eliminar este producto" });
+        }
+
         const result = await productDao.deleteProduct(productId);
         logger.info("Producto eliminado correctamente:", result);
         res.json({ status: "success producto eliminado", result: result });
@@ -167,6 +185,21 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+
+
+/* const deleteProduct = async (req, res) => {
+    const productId = req.params.id;
+    try {
+        const result = await productDao.deleteProduct(productId);
+        logger.info("Producto eliminado correctamente:", result);
+        res.json({ status: "success producto eliminado", result: result });
+    } catch (error) {
+        logger.error("Error al eliminar el producto:", error);
+        console.log(error);
+        res.status(500).send({ status: "error", error: "Algo salio mal intenta mas tarde" });
+    }
+};
+ */
 module.exports = {
     getProducts,
     getProductById,

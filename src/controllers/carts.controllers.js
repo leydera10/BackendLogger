@@ -1,4 +1,5 @@
 const CartDao = require("../dao/mongo/carts.mongo");
+const ProductDao = require("../dao/mongo/products.mongo");
 const mongoose = require("mongoose")
 const { ticketModel } = require("../dao/mongo/models/tickets.model.js");
 const { AddProductToCart } = require("../Errors/customErrors.js");
@@ -15,6 +16,8 @@ const logger = require("../logger.js");
 
 //se instancia la clase del carrito 
 const cartDao = new CartDao();
+const productDao = new ProductDao()  
+
 
 // funcion para obtener un carrito especifico segun id 
 
@@ -130,10 +133,12 @@ async function isValidCartId(id){
     return true;
 }
 
+//FUNCION PARA AGREGAR VARIOS PRODUCTOS AL CARRITO 
 async function addProductsToCart(req, res) {
     try {
         const cartId = req.params.cid;
         const products = req.body; // Espera un array de productos
+        const user = req.user; //obtiene info del usuario autenticado
 
         // Verifica si products es un array y no está vacío
         if (!Array.isArray(products) || products.length === 0) {
@@ -160,41 +165,12 @@ async function addProductsToCart(req, res) {
                 logger.error("La cantidad debe ser 1 o más");
                 throw new AddProductToCart("La cantidad debe ser 1 o más", 400);
             }
-        }
 
-        // Llama a la función de DAO para agregar productos al carrito
-        const result = await cartDao.addProductsToCart(cartId, products);
-        return res.json(result);
-    } catch (error) {
-        if (error instanceof AddProductToCart) {
-            console.error('Error al agregar productos al carrito:', error.message);
-            return res.status(error.statusCode).json({ status: 'error', error: error.message });
-        } else {
-            logger.error("Algo salió mal, intenta más tarde:", error);
-            console.error(error);
-            return res.status(500).json({ status: 'error', error: 'Algo salió mal, intenta más tarde' });
-        }
-    }
-}
-
-
-//FUNCION PARA AGREGAR VARIOS PRODUCTOS AL CARRITO (respaldo)
-/* async function addProductsToCart(req, res) {
-    try {
-        const cartId = req.params.cid;
-        const products = req.body; // Espera un array de productos
-        
-
-        // Verifica si products es un array y no está vacío
-        if (!Array.isArray(products) || products.length === 0) {
-            return res.status(400).json({ message: "Formato de productos no válido" });
-        }
-
-        // Verifica cada producto del array
-        for (const product of products) {
-            const { productId, quantity } = product;
-            if (quantity < 1) {
-                return res.status(400).json({ message: "La cantidad debe ser 1 o más" });
+            // Verifica si el usuario es premium y es propietario del producto
+            const productInfo = await productDao.getProductById(productId);
+            if (user.rol === "premium" && productInfo.owner === user.email) {
+                logger.error("No puedes agregar tus propios productos al carrito");
+                throw new AddProductToCart("No puedes agregar tus propios productos al carrito", 403);
             }
         }
 
@@ -202,10 +178,17 @@ async function addProductsToCart(req, res) {
         const result = await cartDao.addProductsToCart(cartId, products);
         return res.json(result);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ status: "error", error: error.message });
+        if (error instanceof AddProductToCart) {
+            console.error("Error al agregar productos al carrito:", error.message);
+            return res.status(error.statusCode).json({ status: 'error', error: error.message });
+        } else {
+            logger.error("Algo salio mal, intenta mas tarde:", error);
+            console.error(error);
+            return res.status(500).json({ status: "error", error: "Algo salio mal, intenta mas tarde:" });
+        }
     }
-} */
+}
+
 
 //para agregar un solo producto al carrito
 /* async function addProductToCart(req, res) {
@@ -347,3 +330,54 @@ module.exports = {
     purchaseProducts,
     getUserCart,
 };
+
+
+
+
+//FUNCION PARA AGREGAR VARIOS PRODUCTOS AL CARRITO (respaldo)
+/* async function addProductsToCart(req, res) {
+    try {
+        const cartId = req.params.cid;
+        const products = req.body; // Espera un array de productos
+
+        // Verifica si products es un array y no está vacío
+        if (!Array.isArray(products) || products.length === 0) {
+            logger.warn("Formato de productos no válido");
+            return res.status(400).json({ message: "Formato de productos no válido" });
+        }
+
+        // Valida el ID del carrito
+        if (!(await isValidCartId(cartId))) {
+            logger.error("ID de carrito no válido");
+            throw new AddProductToCart("ID de carrito no válido", 400);
+        }
+
+        // Valida si el carrito existe
+        if (!(await isvalidcart(cartId))) {
+            logger.error("El carrito no existe");
+            throw new AddProductToCart("El carrito no existe", 404);
+        }
+
+        // Verifica cada producto del array
+        for (const product of products) {
+            const { productId, quantity } = product;
+            if (quantity < 1) {
+                logger.error("La cantidad debe ser 1 o más");
+                throw new AddProductToCart("La cantidad debe ser 1 o más", 400);
+            }
+        }
+
+        // Llama a la función de DAO para agregar productos al carrito
+        const result = await cartDao.addProductsToCart(cartId, products);
+        return res.json(result);
+    } catch (error) {
+        if (error instanceof AddProductToCart) {
+            console.error('Error al agregar productos al carrito:', error.message);
+            return res.status(error.statusCode).json({ status: 'error', error: error.message });
+        } else {
+            logger.error("Algo salió mal, intenta más tarde:", error);
+            console.error(error);
+            return res.status(500).json({ status: 'error', error: 'Algo salió mal, intenta más tarde' });
+        }
+    }
+} */

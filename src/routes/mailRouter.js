@@ -37,4 +37,7 @@ router.post("/enviar-correo", (req, res) => {
 });
 
 
-module.exports = router;
+module.exports = {
+    router,
+    transporter // Exportar el transporter junto con el router
+};

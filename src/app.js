@@ -7,7 +7,7 @@ const productsRouter = require("./routes/productRouter.js");
 const vistaRouter = require("./routes/vistaRouter.js");
 const userRouter = require("./routes/usersRouter.js");
 const sessionRouter = require("./routes/sessionsRouter.js");
-const mailRouter = require("./routes/mailRouter");
+const { router: mailRouter, transporter } = require("./routes/mailRouter"); //revisar errores
 const mockingproducts = require("./routes/mockingRouter.js")
 const passporConfig = require("./config/passport.config.js");
 const { isUtf8 } = require("buffer");
@@ -27,7 +27,6 @@ const GitHubStrategy = require("passport-github2");
 const cookieParser = require("cookie-parser"); //revisar si funciona
 const { Contacts, Users, Carts, Products } = require("./dao/factory");
 const loggerMiddleware = require("./loggerMiddleware.js");
-const { ustomError, throwError, errorMiddleware, Errors } = require('./Errors/customErrors.js');
 
 
 const app = express()
@@ -61,16 +60,20 @@ server.listen(PORT, ()=>{
 app.use(express.static(path.join(__dirname, "public"))) */
 
 
-// Configuración del middleware de sesión con MongoDB
+//************************* Configuración del middleware de sesión con MongoD*************************
 app.use(session({
   store: MongoStore.create({
     mongoUrl: "mongodb+srv://leiderasis30:M2UCwmWsQlIGwGKC@cluster0.f7btw4v.mongodb.net/?retryWrites=true&w=majority",
-    mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true }, ttl: 3500
+    mongoClient: mongoose.connection.getClient(), // Utiliza la conexión de mongoose
+    ttl: 3500
   }),
   secret: "clavesecreta",
   resave: false,
   saveUninitialized: true
 }));
+//************************* End Configuración del middleware de sesión con MongoD ************************* 
+
+
 
 //uso PASSPORT
 initializePassport();
@@ -87,11 +90,7 @@ app.use("/", mailRouter);
 app.use("/", mockingproducts);
 
 
-// Middleware de manejo de errores
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.statusCode || 500).json({ error: err.message });
-});
+
 
 //Configuración de handlebars
 app.engine("handlebars", handlebars.engine());
@@ -104,32 +103,4 @@ app.set("views", __dirname + "/views");
 
 //Archivos dentro de la carpeta public
 app.use(express.static(path.join(__dirname, "public")));
-
-
-
-
-
-
-
-
-
-
-// funcion para actualizar el quantity de los productos
-/* async function updateProductQuantity() {
-    const products = await productModel.find({});
-    for (const product of products) {
-      if (!product.quantity) {
-        product.quantity = 1; // O el valor predeterminado que desees
-      }
-    }
-  
-    await Promise.all(products.map(product => product.save()));
-    console.log('Actualización de productos completa');
-}
-  
-updateProductQuantity(); */
-
-
-
-
 

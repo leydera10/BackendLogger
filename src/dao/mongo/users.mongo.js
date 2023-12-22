@@ -1,4 +1,6 @@
+const bcrypt = require("bcrypt")
 const {userModel} = require("./models/users.model.js");
+
 
 class UserDAO {
   // Funciones DAO para el manejo de los usuarios en la base de datos
@@ -25,6 +27,7 @@ class UserDAO {
         }
     }
 
+    // buscar usuario por id 
     async getUserById(userId) {
         try {
             const user = await userModel.findById(userId);
@@ -32,6 +35,41 @@ class UserDAO {
         } catch (error) {
             console.error(error);
             return null;
+        }
+    }
+
+    //buscar usuario por correo
+    async getUserByEmail(email) {
+        try {
+          const user = await userModel.findOne({ email });
+          return user;
+        } catch (error) {
+          console.error(error);
+          return null;
+        }
+    }
+
+    async comparePasswords(newPassword, hashedPassword) {
+        try {
+          return await bcrypt.compare(newPassword, hashedPassword);
+        } catch (error) {
+          console.error('Error al comparar contraseñas:', error);
+          return false; // Manejar el error según la lógica de tu aplicación
+        }
+    }
+
+    async updatePassword(userId, newPassword) {
+        try {
+          const updatedUser = await userModel.findByIdAndUpdate(
+            userId,
+            { password: newPassword },
+            { new: true }
+          );
+      
+          return updatedUser;
+        } catch (error) {
+          console.error(`Error al actualizar la contraseña: ${error}`);
+          return null;
         }
     }
 
