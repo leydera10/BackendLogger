@@ -347,6 +347,34 @@ document.addEventListener("DOMContentLoaded", () => {
         });
   
         if (!response.ok) {
+          if (response.status === 400) {
+            const data = await response.json();
+            alert(data.error); // Muestra el mensaje específico del servidor
+          } else if (response.status === 401) {
+            alert("Tiempo de enlace expirado, redirigiendo al inicio.");
+            window.location.href = "/login";
+          } else {
+            throw new Error('Error al actualizar la contraseña');
+          }
+        } else {
+          const data = await response.json();
+          alert("Contraseña actualizada correctamente")
+          console.log(data);
+        }
+      } catch (error) {
+        // Manejar errores
+        console.error('Error:', error.message);
+      }
+      /* try {
+        const response = await fetch("/actualizar-pass", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, newPassword })
+        });
+        console.log(response)
+        if (!response.ok) {
           if (response.status === 401) {
             alert("Tiempo de enlace expirado,  redirigiendo alinicio.");
             window.location.href = "/login"; // Redirigir a la página de inicio de sesión
@@ -361,7 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         // Manejar errores
         console.error('Error:', error.message);
-      }
+      } */
     
     });
   }
