@@ -1,0 +1,85 @@
+paths:
+  /api/carts:
+    get:
+      summary: Obtiene todos los carritos
+      responses:
+        '200':
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:
+                $ref: 'src/dao/mongo/models/carts.model' # Ruta al esquema de carritos
+        '500':
+          description: Error interno del servidor 
+
+  /api/carts/{cid}/products:
+    post:
+      summary: Agrega productos a un carrito
+      parameters:
+        - in: path
+          name: cid
+          required: true
+          description: ID del carrito
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  product:
+                    type: string
+                    description: ID del producto a agregar
+                  quantity:
+                    type: number
+                    description: Cantidad del producto a agregar
+                required:
+                  - product
+                  - quantity
+      responses:
+        '200':
+          description: Productos agregados al carrito correctamente
+        '500':
+          description: Error interno del servidor
+
+  /api/deletecarts/{id}:
+    delete:
+      summary: Eliminar un carrito por ID
+      description: Elimina un carrito según su ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID del carrito a eliminar
+          schema:
+            type: string # Dependiendo del tipo de ID que estés utilizando
+
+      responses:
+        '200':
+          description: Carrito eliminado correctamente
+        '404':
+          description: Carrito no encontrado
+
+  /api/deleteproductcarts/{cid}:
+    delete:
+      summary: Eliminar todos los productos de un carrito por ID
+      description: Elimina todos los productos de un carrito específico por su ID
+      parameters:
+        - in: path
+          name: cid
+          required: true
+          description: ID del carrito del cual eliminar los productos
+          schema:
+            type: string # Dependiendo del tipo de ID que estés utilizando
+
+      responses:
+        '200':
+          description: Productos eliminados correctamente del carrito
+        '404':
+          description: Carrito no encontrado   

@@ -19,18 +19,18 @@ const getProducts = async (req, res) => {
         const options = { page: page, limit: limit, sort: { [sortBy]: 1 } };
         
         //productos paginados desde el DAO (Data Access Object) el DAO realiza una consulta a la base de datos para obtener los productos según las opciones proporcionadas.
-        const result = await productDao.getPaginatedProducts(options);
+        const result = await productDao.getProducts(options);
 
         // condicional si !NO encuentra los productos retorna un error 
-        if (!result.products.length) {
+        if (!result || !result.length) {
             return res.status(404).json({ message: "Productos no encontrados" });
         }
 
         // si todo sale bien muestra los productos
         res.json({
-            products: result.products,
-            currentPage: result.currentPage,
-            totalPages: result.totalPages,
+            products: result/* .products */,
+            currentPage: page/* result.currentPage */,
+            /* totalPages: result.totalPages, */
         });
 
         //si todo sale mal muestra el error maximo

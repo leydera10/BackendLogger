@@ -1,0 +1,104 @@
+paths:
+  /products:
+    get:
+      summary: Obtiene todos los productos
+      responses:
+        '200':
+          description: "Respuesta exitosa"
+          content:
+            application/json:
+              schema:
+                $ref: 'src/dao/mongo/models/products.model' # Ruta al esquema de productos
+        '500':
+          description: "Error interno del servidor"
+
+  /product/{pid}:
+    get:
+      summary: Obtiene un producto por ID
+      parameters:
+        - in: path
+          name: pid
+          required: true
+          description: ID del producto a obtener
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Respuesta exitosa"
+          content:
+            application/json:
+              schema:
+                $ref: 'src/dao/mongo/models/product.model'
+    
+  /api/products:
+    post:
+      summary: Crea un nuevo producto
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Título del producto
+                description:
+                  type: string
+                  description: Descripción del producto
+                code:
+                  type: string
+                  description: Código del producto
+                price:
+                  type: number
+                  description: Precio del producto
+                stock:
+                  type: number
+                  description: Stock del producto
+                category:
+                  type: string
+                  description: Categoría del producto
+                thumbnails:
+                  type: string
+                  description: URL de la imagen del producto
+                quantity:
+                  type: number
+                  description: Cantidad del producto
+              required:
+                - title
+                - description
+                - code
+                - price
+                - stock
+                - category
+                - thumbnails
+                - owner
+                - quantity
+      responses:
+        "200":
+          description: "Producto creado correctamente"
+        "500":
+          description: "Error interno del servidor"
+
+  /products/{id}:
+    delete:
+      summary: Elimina un producto por ID
+      security:
+      - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID del producto a eliminar
+          schema:
+            type: string
+      
+      responses:
+        '200':
+          description: Producto eliminado correctamente
+        '401':
+          description: No autorizado para eliminar el producto
+        '500':
+          description: Error interno del servidor
