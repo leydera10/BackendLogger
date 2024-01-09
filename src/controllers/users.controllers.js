@@ -187,40 +187,7 @@ async function updatePasswordByEmail(req, res) {
     console.error(`Error al buscar al usuario o actualizar la contraseña: ${error}`);
     return res.status(500).json({ error: "Error interno del servidor" });
   }
-  /* try {
-    const user = await userDao.getUserByEmail(email);
-
-    if (!user) {
-      return res.status(400).json({ error: "No se encontró el usuario" });
-    }
-    
-    // Comparar la nueva contraseña con la anterior
-    
-    console.log(user.password)
-    console.log(newPassword)
-
-    const matchOldPassword = await bcrypt.compare(newPassword, user.password);
-    
-
-    console.log(matchOldPassword)
-    if (matchOldPassword) {
-      return res.status(400).json({ error: "La nueva contraseña no puede ser igual a la anterior" });
-      
-    }
-    console.log("hola")
-    const hashedPassword = createHash(newPassword); 
-
-    const userUpdate = await userDao.updatePassword(user._id, hashedPassword);
-    if (!userUpdate) {
-      return res.status(500).json({ error: "Error al actualizar la contraseña" });
-    }
-
-    
-    return res.status(200).json({ message: "Contraseña actualizada correctamente" });
-  } catch (error) {
-    console.error(`Error al buscar al usuario o actualizar la contraseña: ${error}`);
-    return res.status(500).json({ error: "Error interno del servidor" });
-  } */
+  
 }
 
 async function deleteUser(req, res) {
@@ -317,3 +284,50 @@ module.exports = {
   updatePasswordByEmail,
   changeRol,
 };
+
+
+
+
+
+
+
+
+
+/* async function updatePasswordByEmail(req, res) {
+  const { email, newPassword } = req.body;
+
+  try {
+    const user = await userDao.getUserByEmail(email);
+
+    if (!user) {
+      return res.status(400).json({ error: "No se encontró el usuario" });
+    }
+    
+    // Comparar la nueva contraseña con la anterior
+    
+    console.log(user.password)
+    console.log(newPassword)
+
+    const matchOldPassword = await bcrypt.compare(newPassword, user.password);
+    
+
+    console.log(matchOldPassword)
+    if (matchOldPassword) {
+      return res.status(400).json({ error: "La nueva contraseña no puede ser igual a la anterior" });
+      
+    }
+    console.log("hola")
+    const hashedPassword = createHash(newPassword); 
+
+    const userUpdate = await userDao.updatePassword(user._id, hashedPassword);
+    if (!userUpdate) {
+      return res.status(500).json({ error: "Error al actualizar la contraseña" });
+    }
+
+    
+    return res.status(200).json({ message: "Contraseña actualizada correctamente" });
+  } catch (error) {
+    console.error(`Error al buscar al usuario o actualizar la contraseña: ${error}`);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  } 
+} */

@@ -65,44 +65,7 @@ const swaggerOptions = {
     // ...otras definiciones de rutas
   ],
 };
-/* const swaggerOptions = {
-  definition: {
-    openapi: "3.0.1",
-    info: {
-      title: "documentacion de API",
-      description: "API clase swagger",
-    },
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
-        },
-      },
-    },
-    security: [{ bearerAuth: [] }],
-  },
-  apis: [
-    "src/docs/products/products.yaml",
-    "src/docs/carts/carts.yaml",
-    // ...otras definiciones de rutas
-  ],
-}; */
 
-/* const swaggerOptions = {
-  definition:{
-    openapi: "3.0.1",
-    info:{
-      title: "documentacion de API",
-      description: "Api clase swagger"
-    },
-  },
-  apis: [
-    "src/docs/products/products.yaml",
-    "src/docs/carts/carts.yaml"
-  ]
-} */
 
 const specs = swaggerJsdoc(swaggerOptions)
 app.use("/apidocs", swaggerUiExpress.serve, swaggerUiExpress.setup(specs))
@@ -146,8 +109,6 @@ app.use(session({
 }));
 //************************* End Configuración del middleware de sesión con MongoD ************************* 
 
-
-
 //uso PASSPORT
 initializePassport();
 
@@ -179,7 +140,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 
 
-
+module.exports = { app };
 
 
 

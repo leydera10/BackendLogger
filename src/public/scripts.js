@@ -318,7 +318,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     }
-
   }
 
   const resetPasswordForm = document.getElementById("resetPasswordForm");
@@ -359,42 +358,17 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           const data = await response.json();
           alert("Contraseña actualizada correctamente")
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 3000); // 3 segundos para reenviar al login
           console.log(data);
         }
       } catch (error) {
         // Manejar errores
         console.error('Error:', error.message);
       }
-      /* try {
-        const response = await fetch("/actualizar-pass", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, newPassword })
-        });
-        console.log(response)
-        if (!response.ok) {
-          if (response.status === 401) {
-            alert("Tiempo de enlace expirado,  redirigiendo alinicio.");
-            window.location.href = "/login"; // Redirigir a la página de inicio de sesión
-            return;
-          }
-          throw new Error('Error al actualizar la contraseña');
-        }
-  
-        const data = await response.json();
-        alert("Contraseña actualizada correctamente")
-        console.log(data);
-      } catch (error) {
-        // Manejar errores
-        console.error('Error:', error.message);
-      } */
-    
     });
   }
-  
-
 });
 
 

@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src/app.js"
+    "start": "nodemon src/app.js",
+    "testprod": "mocha test/products.test.js --timeout 5000",
+    "testcart": "mocha test/carts.test.js --timeout 10000",
+    "testuser": "mocha test/users.test.js --timeout 5000"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +16,7 @@
     "@faker-js/faker": "^8.3.1",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
+    "chai": "^4.3.4",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.3.1",
@@ -22,6 +26,7 @@
     "handlebars": "^4.7.8",
     "hbs": "^4.2.0",
     "jsonwebtoken": "^9.0.2",
+    "mocha": "^10.2.0",
     "mongoose": "^7.5.3",
     "mongoose-paginate-v2": "^1.7.4",
     "multer": "^1.4.5-lts.1",
@@ -33,13 +38,11 @@
     "session-file-store": "^1.5.0",
     "socket.io": "^4.7.2",
     "socketio": "^1.0.0",
+    "supertest": "^6.3.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",
     "winston": "^3.11.0",
     "ws": "^8.14.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
   }
 }
