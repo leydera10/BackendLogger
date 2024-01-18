@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt")
 const { transporter } = require("../routes/mailRouter");
 const UserDao = require("../dao/mongo/users.mongo.js");
 const logger = require("../logger.js");
+const path = require("path")
 
 const userDao = new UserDao();
 
@@ -91,6 +92,24 @@ async function registerUserAndMessage(req, res) {
   }
 }
 
+// funcion para actualizar la ultima conexion de un usuario cada vez que ingresa con su cuenta
+async function updateLastConnection(user) { 
+  
+  try {
+    const userLastConnect = await userModel.findOne({ email: user.email });
+    
+    if(userLastConnect){
+      userLastConnect.last_connection = new Date();
+      await userLastConnect.save();
+      logger.info("Ultima conexion actualizada")
+    } else {
+      logger.error("Usuario no encontrado")
+    }
+  } catch (error) {
+    logger.info("error en guardar ultima connexion", error)
+  }
+}
+
 // LOGIN
 async function loginUser(req, res) {
   const { email, password } = req.body;
@@ -101,6 +120,8 @@ async function loginUser(req, res) {
       logger.error("Usuario o contraseña incorrecta");
       return res.status(401).json({ message: "Usuario o contraseña incorrecta" });
     }
+    // llama a la funcion que actualiza el campo de la ultima coneecion de  un usuario
+    await updateLastConnection(user);
 
     const token = generateToken({ email: user.email, nombre: user.nombre, apellido: user.apellido, rol: user.rol });
     res.cookie("token", token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
@@ -120,6 +141,8 @@ async function loginUser(req, res) {
     res.status(500).json({ error: "Error al ingresar " + error.message });
   }
 }
+
+
 
 async function getUserInfo(req, res) {
   const user = req.user;
@@ -219,7 +242,7 @@ async function recuperacionCorreo(req, res) {
     }
 
     logger.info("token de recoverypass:" + token)
-    // Construir el enlace de recuperación
+    // Genera el enlace de recuperación
     const recoveryLink = `http://localhost:8080/reset_password/${token}`;
 
     // Contenido del email
@@ -234,7 +257,7 @@ async function recuperacionCorreo(req, res) {
     transporter.sendMail(mailOptions, (error) => {
       if (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Hubo un error al enviar el correo.' });
+        return res.status(500).json({ message: 'error al enviar el correo.' });
       }
       return res.json({ message: 'Se ha enviado un enlace de recuperación a tu correo electrónico.' });
     });
@@ -244,7 +267,51 @@ async function recuperacionCorreo(req, res) {
   }
 }
 
+
+function allDocumentsRequired(user, documentosNecesarios) {
+  // se obtienen los documentos de la base de datos del usuario
+  const documentosUsuario = user.documents || [];
+
+  // extraelos tipos de documentos del array de objetos y los almacena en la variable documento
+  const tiposDocumentosUsuario = documentosUsuario.map(documento => documento.type);
+
+  // verifica que existan todos los documentos requeridos
+  return documentosNecesarios.every(documento => tiposDocumentosUsuario.includes(documento));
+}
+
 async function changeRol(req, res) {
+  const { uid } = req.params;
+  try {
+    const user = await userDao.getUserById(uid);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // verifica si existen los tres documentos requeridos
+    const documentosNecesarios = ["profileImage", "identificationPdf", "documentWord"];
+
+    if (allDocumentsRequired(user, documentosNecesarios)) {
+      // Cambiar el rol según la lógica deseada
+      if (user.rol === "user") {
+        user.rol = "premium";
+      } else if (user.rol === "premium") {
+        user.rol = "user";
+      }
+
+      const updatedUser = await user.save(); // Guardar el usuario con el nuevo rol
+
+      res.json({ message: "Rol de usuario actualizado", user: updatedUser });
+    } else {
+      res.status(400).json({ message: "El usuario no tiene todos los documentos necesarios" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", error: "Error al cambiar el rol del usuario" });
+  }
+}
+
+/* async function changeRol(req, res) {
   const { uid } = req.params;
   try {
     const user = await userDao.getUserById(uid)
@@ -253,7 +320,7 @@ async function changeRol(req, res) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    // Cambiar el rol según la lógica deseada
+    // Cambiar el rol según de user a premium y viceversa
     if (user.rol === "user") {
       user.rol = "premium";
     } else if (user.rol === "premium") {
@@ -268,6 +335,56 @@ async function changeRol(req, res) {
     res.status(500).json({ status: "error", error: "Error al cambiar el rol del usuario" });
   }
 }
+ */
+// Función para subir archivos del usuario
+
+const uploadDocuments = async (req, res) => {
+  try {
+    // Obtener el ID del usuario de la URL
+    const userId = req.params.uid;
+
+    // Verificar si req.files existe y contiene archivos
+    if (req.files) {
+      // Buscar el usuario en la base de datos
+      const user = await userModel.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      // Iterar sobre los archivos subidos y actualizar el modelo
+      Object.keys(req.files).forEach((fileType) => {
+        const file = req.files[fileType][0];
+        const filePath = file.path;
+
+        // Determinar el tipo de documento y agregarlo al array documents
+        let documentType;
+        if (fileType === "identificationImage") {
+          documentType = "profileImage";
+        } else if (fileType === "document") {
+          documentType = "documentWord";
+        } else if (fileType === "profilePhoto") {
+          documentType = "identificationPdf";
+        }
+
+        // Agregar el objeto al array documents
+        user.documents.push({ type: documentType, path: filePath });
+      });
+
+      // Guardar los cambios en la base de datos
+      await user.save();
+
+      res.status(200).json({ message: "Archivos cargados con éxito" });
+    } else {
+      res.status(400).json({ error: "No se han proporcionado archivos para cargar" });
+    }
+  } catch (error) {
+    console.error("Error al subir archivos:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+
 
 module.exports = {
   registerUserAndMessage,
@@ -283,6 +400,7 @@ module.exports = {
   recuperacionCorreo,
   updatePasswordByEmail,
   changeRol,
+  uploadDocuments,
 };
 
 
